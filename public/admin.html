@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>DevHub — Partner Admin</title>
+  <style>
+    * { box-sizing: border-box; font-family: -apple-system, Segoe UI, Roboto, sans-serif; }
+    body { margin: 0; background: #f5f7fb; color: #111; }
+    header { background: #0b1020; color: #fff; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+    header h1 { font-size: 18px; margin: 0; }
+    .container { max-width: 1100px; margin: 24px auto; padding: 0 16px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+    .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+    h2 { font-size: 15px; margin: 0 0 14px; }
+    label { font-size: 12px; font-weight: 600; display: block; margin: 10px 0 4px; }
+    input, select { width: 100%; padding: 9px 10px; border: 1px solid #d7dbe4; border-radius: 8px; font-size: 13px; }
+    button { margin-top: 12px; padding: 10px 14px; border: 0; border-radius: 8px; background: #4f6ef7; color: #fff; font-weight: 600; cursor: pointer; font-size: 13px; }
+    button.small { padding: 6px 10px; font-size: 12px; }
+    button.ghost { background: #eef1f8; color: #333; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 9px 6px; border-bottom: 1px solid #eef1f8; }
+    th { color: #666; font-weight: 600; font-size: 12px; text-transform: uppercase; }
+    .link-box { display: flex; gap: 6px; align-items: center; margin-top: 8px; }
+    .link-box input { font-family: monospace; font-size: 12px; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .badge.new { background: #e8f0ff; color: #2b4fd8; }
+    .badge.active { background: #e6f8ee; color: #0a7d32; }
+    .badge.inactive { background: #fdeaea; color: #c02626; }
+    #detailPanel { display: none; }
+    .clickable { cursor: pointer; }
+    .clickable:hover { background: #f7f9ff; }
+    .muted { color: #888; font-size: 12px; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>DevHub — Partner Admin</h1>
+  <div>
+    <input id="adminKey" placeholder="Admin key" style="width:220px;padding:8px 10px;border-radius:8px;border:0;" />
+    <button class="small" onclick="loadPartners()">Load</button>
+  </div>
+</header>
+
+<div class="container">
+  <div class="grid">
+    <!-- Add partner -->
+    <div class="card">
+      <h2>Add new partner</h2>
+      <form id="partnerForm">
+        <label>Partner name *</label>
+        <input name="name" required />
+        <label>Email</label>
+        <input name="email" type="email" />
+        <label>Company</label>
+        <input name="company" />
+        <label>Commission rate (%)</label>
+        <input name="commission_rate" type="number" value="10" min="0" max="100" step="0.1" />
+        <button type="submit">Create partner & generate link</button>
+      </form>
+      <div id="createMsg" class="muted" style="margin-top:10px"></div>
+    </div>
+
+    <!-- Partners list -->
+    <div class="card">
+      <h2>Partners</h2>
+      <table id="partnersTable">
+        <thead>
+          <tr><th>Partner</th><th>Clicks</th><th>Leads</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Partner detail -->
+  <div class="card" id="detailPanel" style="margin-top:20px;">
+    <h2 id="detailTitle">Partner details</h2>
+    <div id="detailBody"></div>
+  </div>
+</div>
+
+<script src="admin.js"></script>
+</body>
+</html>
