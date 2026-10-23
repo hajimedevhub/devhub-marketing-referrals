@@ -8,6 +8,8 @@ import Clients from './pages/Clients';
 import ReferralForm from './pages/ReferralForm';
 import PartnerDetail from './pages/PartnerDetail';
 import ProtectedRoute from './components/ProtectedRoute';
+import Recover from './pages/Recover';
+
 
 function App() {
   return (
@@ -16,6 +18,7 @@ function App() {
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/setup" element={<Setup />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/recover" element={<Recover />} />
         <Route path="/referral/:code" element={<ReferralForm />} />
         <Route
           path="/admin/dashboard"

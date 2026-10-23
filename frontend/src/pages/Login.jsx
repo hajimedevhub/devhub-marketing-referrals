@@ -55,6 +55,12 @@ function Login() {
           <button type="submit" disabled={loading} style={styles.button}>
             {loading ? 'Verifying...' : 'Access Dashboard'}
           </button>
+          <p style={{ textAlign: 'center', marginTop: '16px', fontSize: '13px', color: '#64748b' }}>
+  Forgot your code?{' '}
+  <Link to="/recover" style={{ color: '#3b82f6', fontWeight: '600' }}>
+    Recover access
+  </Link>
+</p>
         </form>
       </div>
     </div>
