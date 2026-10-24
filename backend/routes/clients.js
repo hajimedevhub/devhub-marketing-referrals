@@ -9,8 +9,8 @@ router.post('/submit/:code', async (req, res) => {
   try {
     const { name, email, phone, company, message } = req.body;
 
-    if (!name || !email || !phone) {
-      return res.status(400).json({ message: 'Name, email and phone are required' });
+    if (!name || !email || !phone || !company || !message ) {
+      return res.status(400).json({ message: 'Name, email, phone, company, and message are required' });
     }
 
     const partner = await Partner.findOne({ 

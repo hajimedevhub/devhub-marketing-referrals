@@ -19,10 +19,12 @@ const clientSchema = new mongoose.Schema({
   },
   company: {
     type: String,
+    required: true,
     trim: true
   },
   message: {
     type: String,
+    required: true,
     trim: true
   },
   partner: {
