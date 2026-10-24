@@ -112,16 +112,18 @@ function ReferralForm() {
             required
           />
           <input
-            placeholder="Company (optional)"
+            placeholder="Company"
             value={form.company}
             onChange={(e) => setForm({ ...form, company: e.target.value })}
             style={styles.input}
+            required
           />
           <textarea
-            placeholder="Message (optional)"
+            placeholder="Message"
             value={form.message}
             onChange={(e) => setForm({ ...form, message: e.target.value })}
             style={{ ...styles.input, minHeight: '100px', resize: 'vertical' }}
+            required
           />
           {error && <p style={styles.error}>{error}</p>}
           <button type="submit" disabled={submitting} style={styles.button}>
