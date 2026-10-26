@@ -6,6 +6,8 @@ const cors = require('cors');
 const authRoutes = require('./routes/auth');
 const partnerRoutes = require('./routes/partners');
 const clientRoutes = require('./routes/clients');
+const partnerAuthRoutes = require('./routes/partnerAuth');
+const partnerClientRoutes = require('./routes/partnerClients');
 
 const app = express();
 
@@ -17,7 +19,8 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/partners', partnerRoutes);
 app.use('/api/clients', clientRoutes);
-
+app.use('/api/partner-auth', partnerAuthRoutes);
+app.use('/api/partner-clients', partnerClientRoutes);
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
