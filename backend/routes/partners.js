@@ -114,12 +114,39 @@ router.put('/:id', authMiddleware, async (req, res) => {
   }
 });
 
-// DELETE partner (admin)
+// DELETE partner (admin) — permanent removal
 router.delete('/:id', authMiddleware, async (req, res) => {
   try {
-    const partner = await Partner.findByIdAndDelete(req.params.id);
-    if (!partner) return res.status(404).json({ message: 'Partner not found' });
-    res.json({ message: 'Partner deleted successfully' });
+    const partner = await Partner.findById(req.params.id);
+    if (!partner) {
+      return res.status(404).json({ message: 'Partner not found' });
+    }
+
+    // Count affected clients BEFORE deletion
+    const clientCount = await Client.countDocuments({ partner: partner._id });
+
+    // Detach clients from partner (keep their data + partnerName for history)
+    if (clientCount > 0) {
+      await Client.updateMany(
+        { partner: partner._id },
+        {
+          $set: {
+            partner: null,
+            partnerName: `${partner.name} (deleted)`,
+            status: 'lost'  // optional: mark orphaned clients as 'lost'
+          }
+        }
+      );
+    }
+
+    // Delete the partner
+    await Partner.findByIdAndDelete(partner._id);
+
+    res.json({
+      message: 'Partner deleted successfully',
+      deletedPartner: { name: partner.name, email: partner.email },
+      orphanedClients: clientCount
+    });
   } catch (error) {
     console.error('❌ DELETE partner:', error);
     res.status(500).json({ message: error.message });
