@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const { nanoid } = require('nanoid');
 const crypto = require('crypto');
 const Partner = require('../models/Partner');
 const Client = require('../models/Client');
@@ -15,18 +14,31 @@ function generatePassword() {
   return `${w}${w2}-${num}`;
 }
 
+// Generate a URL-safe referral code (replaces nanoid — no dependency issues)
+function generateReferralCode() {
+  return crypto.randomBytes(6).toString('hex').slice(0, 10);
+}
+
+// Build a safe partner payload (strip password) — no spread on Mongoose docs
+function toSafePartner(partner, extra = {}) {
+  const obj = partner.toObject({ getters: false, virtuals: false });
+  delete obj.password;
+  return { ...obj, ...extra };
+}
+
 // GET all partners (admin)
 router.get('/', authMiddleware, async (req, res) => {
   try {
     const partners = await Partner.find().sort({ createdAt: -1 });
-    const partnersWithCounts = await Promise.all(
+    const result = await Promise.all(
       partners.map(async (p) => {
         const clientCount = await Client.countDocuments({ partner: p._id });
-        return { ...p.toObject(), password: undefined, clientCount };
+        return toSafePartner(p, { clientCount });
       })
     );
-    res.json(partnersWithCounts);
+    res.json(result);
   } catch (error) {
+    console.error('❌ GET partners:', error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -40,29 +52,33 @@ router.post('/', authMiddleware, async (req, res) => {
       return res.status(400).json({ message: 'Name and email are required' });
     }
 
-    const existing = await Partner.findOne({ email });
+    const existing = await Partner.findOne({ email: email.toLowerCase().trim() });
     if (existing) {
       return res.status(400).json({ message: 'Partner with this email already exists' });
     }
 
     const plainPassword = generatePassword();
-    const referralCode = nanoid(10);
+    const referralCode = generateReferralCode();
 
     const partner = new Partner({
-      name, email, company, phone,
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
+      company: company?.trim() || '',
+      phone: phone?.trim() || '',
       password: plainPassword,
       referralCode
     });
 
     await partner.save();
 
-    // ⚠️ Return plain password ONLY on creation — admin must copy & share it
+    // Use safe builder — no spread on Mongoose doc, no undefined fields
     res.status(201).json({
-      partner: { ...partner.toObject(), password: undefined },
-      credentials: { email, password: plainPassword }
+      partner: toSafePartner(partner),
+      credentials: { email: partner.email, password: plainPassword }
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('❌ CREATE partner:', error);
+    res.status(500).json({ message: error.message || 'Failed to create partner' });
   }
 });
 
@@ -89,10 +105,11 @@ router.put('/:id', authMiddleware, async (req, res) => {
     await partner.save();
 
     res.json({
-      partner: { ...partner.toObject(), password: undefined },
-      credentials: newPassword ? { email: partner.email, password: newPassword } : undefined
+      partner: toSafePartner(partner),
+      credentials: newPassword ? { email: partner.email, password: newPassword } : null
     });
   } catch (error) {
+    console.error('❌ UPDATE partner:', error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -104,6 +121,7 @@ router.delete('/:id', authMiddleware, async (req, res) => {
     if (!partner) return res.status(404).json({ message: 'Partner not found' });
     res.json({ message: 'Partner deleted successfully' });
   } catch (error) {
+    console.error('❌ DELETE partner:', error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -120,6 +138,7 @@ router.get('/referral/:code', async (req, res) => {
       partnerId: partner._id
     });
   } catch (error) {
+    console.error('❌ GET referral:', error);
     res.status(500).json({ message: error.message });
   }
 });
