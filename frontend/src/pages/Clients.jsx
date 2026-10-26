@@ -2,18 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Layout from '../components/Layout';
 import API from '../api';
+import { useIsMobile } from '../hooks/useMediaQuery';
 
 const statusColors = {
-  new: { bg: '#fef3c7', color: '#92400e' },
-  contacted: { bg: '#dbeafe', color: '#1e40af' },
-  converted: { bg: '#d1fae5', color: '#065f46' },
-  lost: { bg: '#fee2e2', color: '#991b1b' }
+  new: { bg: 'var(--warning-light)', color: '#92400e', label: 'New' },
+  contacted: { bg: 'var(--info-light)', color: '#1e40af', label: 'Contacted' },
+  converted: { bg: 'var(--success-light)', color: '#065f46', label: 'Converted' },
+  lost: { bg: 'var(--danger-light)', color: '#991b1b', label: 'Lost' }
 };
 
 function Clients() {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
+  const isMobile = useIsMobile();
   const partnerId = searchParams.get('partner');
 
   useEffect(() => {
@@ -43,55 +45,183 @@ function Clients() {
 
   return (
     <Layout>
-      <h2 style={styles.heading}>
-        {partnerId ? 'Partner Clients' : 'All Clients'}
-      </h2>
+      <div style={{ marginBottom: '24px' }}>
+        <h2 style={{
+          fontSize: isMobile ? '22px' : '28px',
+          fontWeight: '700',
+          color: 'var(--text-primary)',
+          margin: 0
+        }}>
+          {partnerId ? 'Partner Clients' : 'All Clients'}
+        </h2>
+        <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginTop: '4px' }}>
+          {clients.length} {clients.length === 1 ? 'client' : 'clients'} total
+        </p>
+      </div>
 
       {loading ? (
-        <p>Loading...</p>
+        <div style={{ padding: '60px', textAlign: 'center', color: 'var(--text-muted)' }}>
+          Loading...
+        </div>
       ) : clients.length === 0 ? (
-        <div style={styles.emptyCard}>
-          <p style={styles.empty}>No clients yet</p>
+        <div className="card" style={{ padding: '60px 20px', textAlign: 'center' }}>
+          <div style={{ fontSize: '48px', marginBottom: '12px' }}>📭</div>
+          <p style={{ color: 'var(--text-muted)', margin: 0 }}>No clients yet</p>
+        </div>
+      ) : isMobile ? (
+        /* MOBILE — CARD VIEW */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {clients.map((client) => (
+            <div key={client._id} className="card" style={{ padding: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, var(--primary-light), #c7d2fe)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--primary)',
+                    fontWeight: '700',
+                    fontSize: '15px',
+                    flexShrink: 0
+                  }}>
+                    {client.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontWeight: '600', color: 'var(--text-primary)', fontSize: '15px' }}>
+                      {client.name}
+                    </div>
+                    {client.company && (
+                      <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                        {client.company}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                padding: '12px',
+                background: 'var(--bg)',
+                borderRadius: '8px',
+                fontSize: '13px',
+                marginBottom: '12px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>📧 Email</span>
+                  <span style={{ color: 'var(--text-secondary)', fontWeight: '500', textAlign: 'right', wordBreak: 'break-all', marginLeft: '8px' }}>
+                    {client.email}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>📱 Phone</span>
+                  <span style={{ color: 'var(--text-secondary)', fontWeight: '500' }}>{client.phone}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>🤝 Partner</span>
+                  <span style={{ color: 'var(--text-secondary)', fontWeight: '500' }}>{client.partnerName}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>📅 Date</span>
+                  <span style={{ color: 'var(--text-secondary)', fontWeight: '500' }}>
+                    {new Date(client.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+
+              <select
+                value={client.status}
+                onChange={(e) => updateStatus(client._id, e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  border: 'none',
+                  borderRadius: '8px',
+                  background: statusColors[client.status]?.bg,
+                  color: statusColors[client.status]?.color,
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  outline: 'none'
+                }}
+              >
+                <option value="new">New</option>
+                <option value="contacted">Contacted</option>
+                <option value="converted">Converted</option>
+                <option value="lost">Lost</option>
+              </select>
+            </div>
+          ))}
         </div>
       ) : (
-        <div style={styles.tableCard}>
-          <table style={styles.table}>
+        /* DESKTOP — TABLE VIEW */
+        <div className="card" style={{ overflow: 'hidden' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={styles.thead}>
-                <th style={styles.th}>Client</th>
-                <th style={styles.th}>Contact</th>
-                <th style={styles.th}>Partner</th>
-                <th style={styles.th}>Date</th>
-                <th style={styles.th}>Status</th>
+              <tr style={{ background: 'var(--bg)', borderBottom: '1px solid var(--border)' }}>
+                {['Client', 'Contact', 'Partner', 'Date', 'Status'].map((h) => (
+                  <th key={h} style={{
+                    textAlign: 'left',
+                    padding: '14px 20px',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    color: 'var(--text-secondary)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                  }}>
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {clients.map((client) => (
-                <tr key={client._id} style={styles.tr}>
-                  <td style={styles.td}>
-                    <div style={styles.clientName}>{client.name}</div>
+                <tr key={client._id} style={{ borderBottom: '1px solid var(--border-light)' }}>
+                  <td style={{ padding: '16px 20px' }}>
+                    <div style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{client.name}</div>
                     {client.company && (
-                      <div style={styles.clientCompany}>{client.company}</div>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{client.company}</div>
                     )}
                   </td>
-                  <td style={styles.td}>
-                    <div style={styles.contactLine}>{client.email}</div>
-                    <div style={styles.contactLine}>{client.phone}</div>
+                  <td style={{ padding: '16px 20px', fontSize: '13px' }}>
+                    <div style={{ color: 'var(--text-secondary)' }}>{client.email}</div>
+                    <div style={{ color: 'var(--text-muted)' }}>{client.phone}</div>
                   </td>
-                  <td style={styles.td}>
-                    <span style={styles.partnerTag}>{client.partnerName}</span>
+                  <td style={{ padding: '16px 20px' }}>
+                    <span style={{
+                      background: '#ede9fe',
+                      color: '#6b21a8',
+                      padding: '4px 10px',
+                      borderRadius: '12px',
+                      fontSize: '12px',
+                      fontWeight: '600'
+                    }}>
+                      {client.partnerName}
+                    </span>
                   </td>
-                  <td style={styles.td}>
+                  <td style={{ padding: '16px 20px', fontSize: '13px', color: 'var(--text-secondary)' }}>
                     {new Date(client.createdAt).toLocaleDateString()}
                   </td>
-                  <td style={styles.td}>
+                  <td style={{ padding: '16px 20px' }}>
                     <select
                       value={client.status}
                       onChange={(e) => updateStatus(client._id, e.target.value)}
                       style={{
-                        ...styles.statusSelect,
+                        border: 'none',
+                        padding: '6px 12px',
+                        borderRadius: '12px',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
                         background: statusColors[client.status]?.bg,
-                        color: statusColors[client.status]?.color
+                        color: statusColors[client.status]?.color,
+                        outline: 'none'
                       }}
                     >
                       <option value="new">New</option>
@@ -109,48 +239,5 @@ function Clients() {
     </Layout>
   );
 }
-
-const styles = {
-  heading: { fontSize: '24px', color: '#1e293b', marginBottom: '24px' },
-  emptyCard: { background: 'white', padding: '40px', borderRadius: '10px', textAlign: 'center' },
-  empty: { color: '#94a3b8' },
-  tableCard: {
-    background: 'white',
-    borderRadius: '10px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-    overflow: 'auto'
-  },
-  table: { width: '100%', borderCollapse: 'collapse' },
-  thead: { background: '#f8fafc', borderBottom: '1px solid #e2e8f0' },
-  th: {
-    textAlign: 'left',
-    padding: '14px 16px',
-    fontSize: '12px',
-    fontWeight: '600',
-    color: '#64748b',
-    textTransform: 'uppercase'
-  },
-  tr: { borderBottom: '1px solid #f1f5f9' },
-  td: { padding: '14px 16px', fontSize: '14px', color: '#334155' },
-  clientName: { fontWeight: '600', color: '#1e293b' },
-  clientCompany: { fontSize: '12px', color: '#94a3b8' },
-  contactLine: { fontSize: '13px', color: '#475569' },
-  partnerTag: {
-    background: '#ede9fe',
-    color: '#6b21a8',
-    padding: '4px 10px',
-    borderRadius: '12px',
-    fontSize: '12px',
-    fontWeight: '600'
-  },
-  statusSelect: {
-    border: 'none',
-    padding: '6px 10px',
-    borderRadius: '12px',
-    fontSize: '12px',
-    fontWeight: '600',
-    cursor: 'pointer'
-  }
-};
 
 export default Clients;
