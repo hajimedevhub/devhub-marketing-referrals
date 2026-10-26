@@ -11,6 +11,7 @@ function Partners() {
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(null);
   const [newCredentials, setNewCredentials] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     fetchPartners();
@@ -31,17 +32,10 @@ function Partners() {
     e.preventDefault();
     setError('');
     try {
-      // ✅ CAPTURE the response — this was the missing line
       const res = await API.post('/partners', form);
-
-      // ✅ Show credentials popup FIRST
       setNewCredentials(res.data.credentials);
-
-      // ✅ Then reset form and hide form
       setForm({ name: '', email: '', company: '', phone: '' });
       setShowForm(false);
-
-      // ✅ Refresh list LAST — even if this fails, popup already shows
       fetchPartners();
     } catch (err) {
       console.error('Create partner error:', err.response?.data || err.message);
@@ -76,6 +70,41 @@ function Partners() {
       fetchPartners();
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to reset password');
+    }
+  };
+
+  const handleDelete = async (partner) => {
+    const clientCount = partner.clientCount || 0;
+    const warning = clientCount > 0
+      ? `\n\n👥 This partner has ${clientCount} client(s). They will be preserved in the database but marked as "orphaned" (no longer linked to any partner).`
+      : '';
+
+    const confirmed = window.confirm(
+      `⚠️ DELETE "${partner.name}" permanently?\n\n` +
+      `📧 ${partner.email}${warning}\n\n` +
+      `This action CANNOT be undone.`
+    );
+    if (!confirmed) return;
+
+    setDeletingId(partner._id);
+    try {
+      const res = await API.delete(`/partners/${partner._id}`);
+      const { orphanedClients } = res.data;
+
+      if (orphanedClients > 0) {
+        alert(
+          `✅ Partner deleted.\n\n` +
+          `${orphanedClients} client(s) preserved but now unlinked.`
+        );
+      } else {
+        alert(`✅ Partner "${partner.name}" deleted successfully.`);
+      }
+      fetchPartners();
+    } catch (err) {
+      console.error('Delete error:', err);
+      alert(err.response?.data?.message || 'Failed to delete partner');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -185,13 +214,24 @@ function Partners() {
                     onClick={() => resetPassword(partner)}
                     style={styles.resetBtn}
                   >
-                    🔑 Reset Password
+                    🔑 Reset
                   </button>
                   <button
                     onClick={() => toggleStatus(partner)}
                     style={styles.toggleBtn}
                   >
                     {partner.status === 'active' ? 'Deactivate' : 'Activate'}
+                  </button>
+                  <button
+                    onClick={() => handleDelete(partner)}
+                    disabled={deletingId === partner._id}
+                    style={{
+                      ...styles.deleteBtn,
+                      opacity: deletingId === partner._id ? 0.5 : 1,
+                      cursor: deletingId === partner._id ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    {deletingId === partner._id ? 'Deleting...' : '🗑️ Delete'}
                   </button>
                 </div>
               </div>
@@ -200,7 +240,6 @@ function Partners() {
         </div>
       )}
 
-      {/* ✅ Credentials modal — clean, correct, no bugs */}
       {newCredentials && (
         <div style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
@@ -257,119 +296,76 @@ const styles = {
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' },
   heading: { fontSize: '24px', color: '#1e293b', margin: 0 },
   addBtn: {
-    background: '#3b82f6',
-    color: 'white',
-    border: 'none',
-    padding: '10px 20px',
-    borderRadius: '8px',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer'
+    background: '#3b82f6', color: 'white', border: 'none',
+    padding: '10px 20px', borderRadius: '8px',
+    fontSize: '14px', fontWeight: '600', cursor: 'pointer'
   },
   formCard: {
-    background: 'white',
-    padding: '24px',
-    borderRadius: '10px',
-    marginBottom: '24px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+    background: 'white', padding: '24px', borderRadius: '10px',
+    marginBottom: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
   },
   formTitle: { margin: '0 0 16px', fontSize: '18px', color: '#1e293b' },
   formGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '12px',
-    marginBottom: '12px'
+    display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+    gap: '12px', marginBottom: '12px'
   },
   input: {
-    padding: '10px',
-    border: '1px solid #cbd5e1',
-    borderRadius: '6px',
-    fontSize: '14px',
-    boxSizing: 'border-box'
+    padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px',
+    fontSize: '14px', boxSizing: 'border-box'
   },
   submitBtn: {
-    background: '#10b981',
-    color: 'white',
-    border: 'none',
-    padding: '12px 24px',
-    borderRadius: '6px',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer'
+    background: '#10b981', color: 'white', border: 'none',
+    padding: '12px 24px', borderRadius: '6px',
+    fontSize: '14px', fontWeight: '600', cursor: 'pointer'
   },
   error: { color: '#ef4444', fontSize: '13px' },
   emptyCard: { background: 'white', padding: '40px', borderRadius: '10px', textAlign: 'center' },
   empty: { color: '#94a3b8' },
   partnerList: { display: 'flex', flexDirection: 'column', gap: '16px' },
   partnerCard: {
-    background: 'white',
-    padding: '20px',
-    borderRadius: '10px',
+    background: 'white', padding: '20px', borderRadius: '10px',
     boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
   },
   partnerHeader: { display: 'flex', justifyContent: 'space-between', marginBottom: '16px' },
   partnerName: { margin: '0 0 4px', fontSize: '18px', color: '#1e293b' },
   partnerMeta: { margin: '2px 0', fontSize: '13px', color: '#64748b' },
   statusBadge: {
-    padding: '4px 12px',
-    borderRadius: '12px',
-    fontSize: '12px',
-    fontWeight: '600',
-    height: 'fit-content'
+    padding: '4px 12px', borderRadius: '12px',
+    fontSize: '12px', fontWeight: '600', height: 'fit-content'
   },
   linkBox: {
-    display: 'flex',
-    gap: '8px',
-    alignItems: 'center',
-    background: '#f8fafc',
-    padding: '10px',
-    borderRadius: '6px',
-    marginBottom: '16px'
+    display: 'flex', gap: '8px', alignItems: 'center',
+    background: '#f8fafc', padding: '10px',
+    borderRadius: '6px', marginBottom: '16px'
   },
   linkText: { flex: 1, fontSize: '12px', color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis' },
   copyBtn: {
-    background: '#3b82f6',
-    color: 'white',
-    border: 'none',
-    padding: '6px 14px',
-    borderRadius: '6px',
-    fontSize: '12px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    whiteSpace: 'nowrap'
+    background: '#3b82f6', color: 'white', border: 'none',
+    padding: '6px 14px', borderRadius: '6px',
+    fontSize: '12px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap'
   },
   partnerFooter: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' },
   clientCount: { fontSize: '14px', fontWeight: '600', color: '#1e40af' },
   btnGroup: { display: 'flex', gap: '8px', flexWrap: 'wrap' },
   viewBtn: {
-    background: 'white',
-    color: '#3b82f6',
-    border: '1px solid #3b82f6',
-    padding: '6px 14px',
-    borderRadius: '6px',
-    fontSize: '12px',
-    fontWeight: '600',
-    textDecoration: 'none'
+    background: 'white', color: '#3b82f6', border: '1px solid #3b82f6',
+    padding: '6px 14px', borderRadius: '6px', fontSize: '12px',
+    fontWeight: '600', textDecoration: 'none'
   },
   resetBtn: {
-    background: 'white',
-    color: '#f59e0b',
-    border: '1px solid #f59e0b',
-    padding: '6px 14px',
-    borderRadius: '6px',
-    fontSize: '12px',
-    fontWeight: '600',
-    cursor: 'pointer'
+    background: 'white', color: '#f59e0b', border: '1px solid #f59e0b',
+    padding: '6px 14px', borderRadius: '6px', fontSize: '12px',
+    fontWeight: '600', cursor: 'pointer'
   },
   toggleBtn: {
-    background: 'white',
-    color: '#64748b',
-    border: '1px solid #cbd5e1',
-    padding: '6px 14px',
-    borderRadius: '6px',
-    fontSize: '12px',
-    fontWeight: '600',
-    cursor: 'pointer'
+    background: 'white', color: '#64748b', border: '1px solid #cbd5e1',
+    padding: '6px 14px', borderRadius: '6px', fontSize: '12px',
+    fontWeight: '600', cursor: 'pointer'
+  },
+  deleteBtn: {
+    background: '#ef4444', color: 'white', border: 'none',
+    padding: '6px 14px', borderRadius: '6px', fontSize: '12px',
+    fontWeight: '600', cursor: 'pointer'
   }
 };
 
