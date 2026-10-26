@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
+import { useIsMobile } from '../hooks/useMediaQuery';
 import API from '../api';
 
 function Partners() {
+  const isMobile = useIsMobile();
   const [partners, setPartners] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', company: '', phone: '' });
@@ -121,12 +123,17 @@ function Partners() {
         <div style={styles.formCard}>
           <h3 style={styles.formTitle}>New Partner</h3>
           <form onSubmit={handleSubmit}>
-            <div style={styles.formGrid}>
+            <div style={{
+  display: 'grid',
+  gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
+  gap: '12px',
+  marginBottom: '16px'
+}}>
               <input
                 placeholder="Full Name *"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                style={styles.input}
+                className='input'
                 required
               />
               <input
@@ -134,24 +141,24 @@ function Partners() {
                 placeholder="Email *"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                style={styles.input}
+                className='input'
                 required
               />
               <input
                 placeholder="Company"
                 value={form.company}
                 onChange={(e) => setForm({ ...form, company: e.target.value })}
-                style={styles.input}
+                className='input'
               />
               <input
                 placeholder="Phone"
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                style={styles.input}
+                className='input'
               />
             </div>
             {error && <p style={styles.error}>{error}</p>}
-            <button type="submit" style={styles.submitBtn}>
+            <button type="submit" className="btn btn-success btn-block">
               Create Partner & Generate Link
             </button>
           </form>
@@ -168,73 +175,122 @@ function Partners() {
         <div style={styles.partnerList}>
           {partners.map((partner) => (
             <div key={partner._id} style={styles.partnerCard}>
-              <div style={styles.partnerHeader}>
-                <div>
-                  <h3 style={styles.partnerName}>{partner.name}</h3>
-                  <p style={styles.partnerMeta}>{partner.email}</p>
-                  {partner.company && (
-                    <p style={styles.partnerMeta}>{partner.company}</p>
-                  )}
-                </div>
-                <span
-                  style={{
-                    ...styles.statusBadge,
-                    background: partner.status === 'active' ? '#d1fae5' : '#fee2e2',
-                    color: partner.status === 'active' ? '#065f46' : '#991b1b'
-                  }}
-                >
-                  {partner.status}
-                </span>
-              </div>
+              <div style={{
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: '24px',
+  gap: '12px',
+  flexWrap: 'wrap'
+}}>
+  <div>
+    <h2 style={{
+      fontSize: isMobile ? '22px' : '28px',
+      fontWeight: '700',
+      color: 'var(--text-primary)',
+      margin: 0
+    }}>
+      Marketing Partners
+    </h2>
+    <p style={{
+      color: 'var(--text-muted)',
+      fontSize: '14px',
+      marginTop: '4px'
+    }}>
+      {partners.length} {partners.length === 1 ? 'partner' : 'partners'} total
+    </p>
+  </div>
+  <button
+    onClick={() => setShowForm(!showForm)}
+    className="btn btn-primary"
+  >
+    {showForm ? '✕ Cancel' : '+ Add Partner'}
+  </button>
+</div>
 
-              <div style={styles.linkBox}>
-                <code style={styles.linkText}>
-                  {window.location.origin}/referral/{partner.referralCode}
-                </code>
-                <button
-                  onClick={() => copyLink(partner.referralCode)}
-                  style={styles.copyBtn}
-                >
-                  {copied === partner.referralCode ? '✓ Copied' : 'Copy'}
-                </button>
-              </div>
+              <div style={{
+  display: 'flex',
+  gap: '8px',
+  alignItems: 'stretch',
+  background: 'var(--bg)',
+  padding: '10px',
+  borderRadius: 'var(--radius-sm)',
+  marginBottom: '16px',
+  flexDirection: isMobile ? 'column' : 'row'
+}}>
+  <code style={{
+    flex: 1,
+    fontSize: '12px',
+    color: 'var(--text-secondary)',
+    padding: '8px',
+    background: 'white',
+    borderRadius: '6px',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    border: '1px solid var(--border)'
+  }}>
+    {window.location.origin}/referral/{partner.referralCode}
+  </code>
+  <button
+    onClick={() => copyLink(partner.referralCode)}
+    className="btn btn-primary btn-sm"
+    style={{ whiteSpace: 'nowrap' }}
+  >
+    {copied === partner.referralCode ? '✓ Copied' : 'Copy'}
+  </button>
+</div>
 
-              <div style={styles.partnerFooter}>
-                <span style={styles.clientCount}>
-                  {partner.clientCount || 0} clients
-                </span>
-                <div style={styles.btnGroup}>
-                  <Link
-                    to={`/admin/partners/${partner._id}`}
-                    style={styles.viewBtn}
-                  >
-                    View Clients
-                  </Link>
-                  <button
-                    onClick={() => resetPassword(partner)}
-                    style={styles.resetBtn}
-                  >
-                    🔑 Reset
-                  </button>
-                  <button
-                    onClick={() => toggleStatus(partner)}
-                    style={styles.toggleBtn}
-                  >
-                    {partner.status === 'active' ? 'Deactivate' : 'Activate'}
-                  </button>
-                  <button
-                    onClick={() => handleDelete(partner)}
-                    disabled={deletingId === partner._id}
-                    style={{
-                      ...styles.deleteBtn,
-                      opacity: deletingId === partner._id ? 0.5 : 1,
-                      cursor: deletingId === partner._id ? 'not-allowed' : 'pointer'
-                    }}
-                  >
-                    {deletingId === partner._id ? 'Deleting...' : '🗑️ Delete'}
-                  </button>
-                </div>
-              </div>
+              <div style={{
+  ...styles.partnerFooter,
+  flexDirection: isMobile ? 'column' : 'row',
+  alignItems: isMobile ? 'stretch' : 'center',
+  gap: '12px'
+}}>
+  <div style={{
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    justifyContent: isMobile ? 'center' : 'flex-start'
+  }}>
+    <div style={{
+      width: '32px',
+      height: '32px',
+      borderRadius: '8px',
+      background: 'var(--primary-light)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: '14px'
+    }}>👥</div>
+    <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--primary)' }}>
+      {partner.clientCount || 0} {partner.clientCount === 1 ? 'client' : 'clients'}
+    </span>
+  </div>
+
+  <div style={{
+    display: 'grid',
+    gridTemplateColumns: isMobile ? '1fr 1fr' : 'auto auto auto auto',
+    gap: '8px'
+  }}>
+    <Link to={`/admin/partners/${partner._id}`} className="btn btn-secondary btn-sm">
+      View
+    </Link>
+    <button onClick={() => resetPassword(partner)} className="btn btn-secondary btn-sm">
+      🔑 Reset
+    </button>
+    <button onClick={() => toggleStatus(partner)} className="btn btn-secondary btn-sm">
+      {partner.status === 'active' ? 'Disable' : 'Enable'}
+    </button>
+    <button
+      onClick={() => handleDelete(partner)}
+      disabled={deletingId === partner._id}
+      className="btn btn-danger btn-sm"
+    >
+      {deletingId === partner._id ? '...' : '🗑️'}
+    </button>
+  </div>
+</div>
             </div>
           ))}
         </div>

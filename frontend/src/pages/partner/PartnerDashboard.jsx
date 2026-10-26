@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PartnerLayout from '../../components/PartnerLayout';
+import { useIsMobile } from '../../hooks/useMediaQuery';
 import { PartnerAPI } from '../../api';
 
 const statusColors = {
@@ -11,6 +12,7 @@ const statusColors = {
 };
 
 function PartnerDashboard() {
+  const isMobile = useIsMobile();
   const [data, setData] = useState(null);
   const [recentClients, setRecentClients] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -59,7 +61,7 @@ function PartnerDashboard() {
     <PartnerLayout>
       {/* Header */}
       <div style={{ marginBottom: '32px' }}>
-        <h1 style={{ fontSize: '28px', fontWeight: '700', color: '#0f172a', margin: '0 0 6px' }}>
+        <h1 style={{ fontSize: isMobile ? '22px' : '28px', /* ... */ }}>
           Welcome back, {partner?.name?.split(' ')[0]} 👋
         </h1>
         <p style={{ fontSize: '15px', color: '#64748b', margin: 0 }}>
@@ -68,42 +70,28 @@ function PartnerDashboard() {
       </div>
 
       {/* Referral link card */}
-      <div style={{
-        background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
-        borderRadius: '16px',
-        padding: '24px',
-        marginBottom: '32px',
-        color: 'white'
-      }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: '16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
           <div>
             <div style={{ fontSize: '13px', opacity: 0.85, marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Your Referral Link
             </div>
             <code style={{
-              fontSize: '14px',
-              fontFamily: 'monospace',
-              background: 'rgba(255,255,255,0.15)',
-              padding: '8px 14px',
-              borderRadius: '8px',
-              display: 'inline-block',
-              wordBreak: 'break-all'
-            }}>
+    fontSize: '13px',
+    fontFamily: 'monospace',
+    background: 'rgba(255,255,255,0.15)',
+    padding: '10px 14px',
+    borderRadius: '8px',
+    wordBreak: 'break-all',
+    width: isMobile ? '100%' : 'auto',
+    boxSizing: 'border-box'
+  }}>
               {window.location.origin}/referral/{partner?.referralCode}
             </code>
           </div>
           <button
             onClick={copyReferralLink}
-            style={{
-              padding: '12px 24px',
-              background: 'white',
-              color: '#6366f1',
-              border: 'none',
-              borderRadius: '10px',
-              fontWeight: '600',
-              fontSize: '14px',
-              cursor: 'pointer'
-            }}
+            style={{ padding: '12px 24px', width: isMobile ? '100%' : 'auto', /* ...rest */ }}
           >
             📋 Copy Link
           </button>
@@ -112,11 +100,11 @@ function PartnerDashboard() {
 
       {/* Stats grid */}
       <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-        gap: '20px',
-        marginBottom: '32px'
-      }}>
+  display: 'grid',
+  gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
+  gap: isMobile ? '12px' : '20px',
+  marginBottom: '32px'
+}}>
         {statCards.map((card) => (
           <div key={card.label} style={{
             background: 'white',
