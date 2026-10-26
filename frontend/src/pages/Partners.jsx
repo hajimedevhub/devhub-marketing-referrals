@@ -31,12 +31,20 @@ function Partners() {
     e.preventDefault();
     setError('');
     try {
-      await API.post('/partners', form);
+      // ✅ CAPTURE the response — this was the missing line
+      const res = await API.post('/partners', form);
+
+      // ✅ Show credentials popup FIRST
+      setNewCredentials(res.data.credentials);
+
+      // ✅ Then reset form and hide form
       setForm({ name: '', email: '', company: '', phone: '' });
-      setNewCredentials(res.data.credentials); 
       setShowForm(false);
+
+      // ✅ Refresh list LAST — even if this fails, popup already shows
       fetchPartners();
     } catch (err) {
+      console.error('Create partner error:', err.response?.data || err.message);
       setError(err.response?.data?.message || 'Failed to create partner');
     }
   };
@@ -57,6 +65,17 @@ function Partners() {
       fetchPartners();
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const resetPassword = async (partner) => {
+    if (!window.confirm(`Reset password for ${partner.name}? The old password will stop working immediately.`)) return;
+    try {
+      const res = await API.put(`/partners/${partner._id}`, { resetPassword: true });
+      setNewCredentials(res.data.credentials);
+      fetchPartners();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to reset password');
     }
   };
 
@@ -163,6 +182,12 @@ function Partners() {
                     View Clients
                   </Link>
                   <button
+                    onClick={() => resetPassword(partner)}
+                    style={styles.resetBtn}
+                  >
+                    🔑 Reset Password
+                  </button>
+                  <button
                     onClick={() => toggleStatus(partner)}
                     style={styles.toggleBtn}
                   >
@@ -174,56 +199,56 @@ function Partners() {
           ))}
         </div>
       )}
+
+      {/* ✅ Credentials modal — clean, correct, no bugs */}
       {newCredentials && (
-  <div style={{
-    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
-  }}>
-    <div style={{ background: 'white', padding: '32px', borderRadius: '16px', maxWidth: '440px', width: '100%' }}>
-      <h3 style={{ marginTop: 0, color: '#0f172a' }}>✅ Partner Created</h3>
-      <p style={{ color: '#64748b', fontSize: '14px' }}>
-        Share these credentials with your partner. <strong>The password won't be shown again.</strong>
-      </p>
-      <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '10px', marginBottom: '16px', fontFamily: 'monospace', fontSize: '14px' }}>
-        <div><strong>Email:</strong> {newCredentials.email}</div>
-        <div style={{ marginTop: '6px' }}><strong>Password:</strong> {newCredentials.password}</div>
-      </div>
-      <button
-        onClick={() => {
-          navigator.clipboard.writeText(`Email: ${newCredentials.email}\nPassword: ${newCredentials.password}`);
-          alert('Credentials copied!');
-        }}
-        style={{
-          width: '100%', padding: '12px', background: '#6366f1',
-          color: 'white', border: 'none', borderRadius: '10px',
-          fontWeight: '600', cursor: 'pointer', marginBottom: '8px'
-        }}
-      >
-        📋 Copy Credentials
-      </button>
-      <button
-        onClick={() => setNewCredentials(null)}
-        style={{
-          width: '100%', padding: '12px', background: '#f1f5f9',
-          color: '#334155', border: 'none', borderRadius: '10px',
-          fontWeight: '600', cursor: 'pointer'
-        }}
-      >
-        Done
-      </button>
-      <button
-  onClick={async () => {
-    if (!window.confirm(`Reset password for ${partner.name}?`)) return;
-    const res = await API.put(`/partners/${partner._id}`, { resetPassword: true });
-    setNewCredentials(res.data.credentials);
-  }}
-  style={{ /* styles */ }}
->
-  🔑 Reset Password
-</button>
-    </div>
-  </div>
-)}
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+        }}>
+          <div style={{
+            background: 'white', padding: '32px', borderRadius: '16px',
+            maxWidth: '440px', width: '100%', margin: '20px'
+          }}>
+            <h3 style={{ marginTop: 0, color: '#0f172a' }}>✅ Credentials Ready</h3>
+            <p style={{ color: '#64748b', fontSize: '14px' }}>
+              Share these with your partner. <strong>The password won't be shown again.</strong>
+            </p>
+            <div style={{
+              background: '#f8fafc', padding: '16px', borderRadius: '10px',
+              marginBottom: '16px', fontFamily: 'monospace', fontSize: '14px'
+            }}>
+              <div><strong>Email:</strong> {newCredentials.email}</div>
+              <div style={{ marginTop: '6px' }}><strong>Password:</strong> {newCredentials.password}</div>
+            </div>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(
+                  `Email: ${newCredentials.email}\nPassword: ${newCredentials.password}`
+                );
+                alert('Credentials copied to clipboard!');
+              }}
+              style={{
+                width: '100%', padding: '12px', background: '#6366f1',
+                color: 'white', border: 'none', borderRadius: '10px',
+                fontWeight: '600', cursor: 'pointer', marginBottom: '8px'
+              }}
+            >
+              📋 Copy Credentials
+            </button>
+            <button
+              onClick={() => setNewCredentials(null)}
+              style={{
+                width: '100%', padding: '12px', background: '#f1f5f9',
+                color: '#334155', border: 'none', borderRadius: '10px',
+                fontWeight: '600', cursor: 'pointer'
+              }}
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }
@@ -313,9 +338,9 @@ const styles = {
     cursor: 'pointer',
     whiteSpace: 'nowrap'
   },
-  partnerFooter: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+  partnerFooter: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' },
   clientCount: { fontSize: '14px', fontWeight: '600', color: '#1e40af' },
-  btnGroup: { display: 'flex', gap: '8px' },
+  btnGroup: { display: 'flex', gap: '8px', flexWrap: 'wrap' },
   viewBtn: {
     background: 'white',
     color: '#3b82f6',
@@ -325,6 +350,16 @@ const styles = {
     fontSize: '12px',
     fontWeight: '600',
     textDecoration: 'none'
+  },
+  resetBtn: {
+    background: 'white',
+    color: '#f59e0b',
+    border: '1px solid #f59e0b',
+    padding: '6px 14px',
+    borderRadius: '6px',
+    fontSize: '12px',
+    fontWeight: '600',
+    cursor: 'pointer'
   },
   toggleBtn: {
     background: 'white',
