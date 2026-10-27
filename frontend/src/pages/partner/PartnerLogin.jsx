@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { PartnerAPI } from '../../api';
+import { useIsMobile } from '../../hooks/useMediaQuery';
 
 function PartnerLogin() {
+  const isMobile = useIsMobile();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -28,70 +30,145 @@ function PartnerLogin() {
     <div style={{
       minHeight: '100vh',
       display: 'flex',
-      background: '#f8fafc',
-      fontFamily: 'system-ui, -apple-system, sans-serif'
+      flexDirection: isMobile ? 'column' : 'row',
+      background: 'var(--bg)'
     }}>
       {/* Left — brand panel */}
       <div style={{
-        flex: 1,
+        flex: isMobile ? 'none' : 1,
         background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #db2777 100%)',
-        padding: '60px',
+        padding: isMobile ? '32px 24px' : '60px',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        color: 'white'
+        color: 'white',
+        minHeight: isMobile ? 'auto' : '100vh',
+        position: 'relative',
+        overflow: 'hidden'
       }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '60px' }}>
+        {/* Decorative background circles */}
+        <div style={{
+          position: 'absolute',
+          top: '-80px',
+          right: '-80px',
+          width: '280px',
+          height: '280px',
+          borderRadius: '50%',
+          background: 'rgba(255,255,255,0.06)',
+          pointerEvents: 'none'
+        }} />
+        <div style={{
+          position: 'absolute',
+          bottom: '-100px',
+          left: '-60px',
+          width: '320px',
+          height: '320px',
+          borderRadius: '50%',
+          background: 'rgba(255,255,255,0.05)',
+          pointerEvents: 'none'
+        }} />
+
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            marginBottom: isMobile ? '32px' : '60px'
+          }}>
             <div style={{
-              width: '40px', height: '40px', borderRadius: '10px',
+              width: '40px',
+              height: '40px',
+              borderRadius: '10px',
               background: 'rgba(255,255,255,0.2)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: '700', fontSize: '18px'
+              backdropFilter: 'blur(10px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: '700',
+              fontSize: '18px'
             }}>D</div>
             <span style={{ fontSize: '18px', fontWeight: '700' }}>DevHub Partner</span>
           </div>
 
-          <h1 style={{ fontSize: '42px', fontWeight: '700', lineHeight: '1.2', marginBottom: '20px' }}>
-            Grow your business<br />with DevHub
+          <h1 style={{
+            fontSize: isMobile ? '26px' : '42px',
+            fontWeight: '700',
+            lineHeight: '1.2',
+            marginBottom: '16px'
+          }}>
+            {isMobile ? (
+              <>Grow your business<br />with DevHub</>
+            ) : (
+              <>Grow your business<br />with DevHub</>
+            )}
           </h1>
-          <p style={{ fontSize: '16px', opacity: 0.85, maxWidth: '400px', lineHeight: '1.6' }}>
+          <p style={{
+            fontSize: isMobile ? '14px' : '16px',
+            opacity: 0.85,
+            maxWidth: '400px',
+            lineHeight: '1.6',
+            margin: 0
+          }}>
             Track referrals, manage your clients, and watch your commissions grow — all in one place.
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '32px' }}>
-          {[
-            { value: '100%', label: 'Transparency' },
-            { value: '24/7', label: 'Access' },
-            { value: 'Real-time', label: 'Updates' }
-          ].map((s) => (
-            <div key={s.label}>
-              <div style={{ fontSize: '24px', fontWeight: '700' }}>{s.value}</div>
-              <div style={{ fontSize: '13px', opacity: 0.8 }}>{s.label}</div>
-            </div>
-          ))}
-        </div>
+        {/* Stats — hidden on mobile */}
+        {!isMobile && (
+          <div style={{
+            display: 'flex',
+            gap: '32px',
+            position: 'relative',
+            zIndex: 1
+          }}>
+            {[
+              { value: '100%', label: 'Transparency' },
+              { value: '24/7', label: 'Access' },
+              { value: 'Real-time', label: 'Updates' }
+            ].map((s) => (
+              <div key={s.label}>
+                <div style={{ fontSize: '24px', fontWeight: '700' }}>{s.value}</div>
+                <div style={{ fontSize: '13px', opacity: 0.8 }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Right — form */}
       <div style={{
-        flex: 1,
+        flex: isMobile ? 'none' : 1,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '40px'
+        padding: isMobile ? '32px 20px 40px' : '40px',
+        background: 'var(--bg)'
       }}>
         <div style={{ width: '100%', maxWidth: '400px' }}>
-          <h2 style={{ fontSize: '28px', fontWeight: '700', color: '#0f172a', marginBottom: '8px' }}>
+          <h2 style={{
+            fontSize: isMobile ? '24px' : '28px',
+            fontWeight: '700',
+            color: 'var(--text-primary)',
+            marginBottom: '8px'
+          }}>
             Welcome back
           </h2>
-          <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '32px' }}>
+          <p style={{
+            fontSize: '14px',
+            color: 'var(--text-secondary)',
+            marginBottom: '28px'
+          }}>
             Sign in to access your partner dashboard
           </p>
 
           <form onSubmit={handleSubmit}>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#334155', marginBottom: '6px' }}>
+            <label style={{
+              display: 'block',
+              fontSize: '13px',
+              fontWeight: '600',
+              color: 'var(--text-secondary)',
+              marginBottom: '6px'
+            }}>
               Email address
             </label>
             <input
@@ -100,19 +177,17 @@ function PartnerLogin() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@company.com"
               required
-              style={{
-                width: '100%',
-                padding: '12px 14px',
-                border: '1px solid #cbd5e1',
-                borderRadius: '10px',
-                fontSize: '14px',
-                marginBottom: '16px',
-                boxSizing: 'border-box',
-                outline: 'none'
-              }}
+              className="input"
+              style={{ marginBottom: '16px' }}
             />
 
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#334155', marginBottom: '6px' }}>
+            <label style={{
+              display: 'block',
+              fontSize: '13px',
+              fontWeight: '600',
+              color: 'var(--text-secondary)',
+              marginBottom: '6px'
+            }}>
               Password
             </label>
             <input
@@ -121,16 +196,8 @@ function PartnerLogin() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               required
-              style={{
-                width: '100%',
-                padding: '12px 14px',
-                border: '1px solid #cbd5e1',
-                borderRadius: '10px',
-                fontSize: '14px',
-                marginBottom: '20px',
-                boxSizing: 'border-box',
-                outline: 'none'
-              }}
+              className="input"
+              style={{ marginBottom: '20px' }}
             />
 
             {error && (
@@ -160,19 +227,35 @@ function PartnerLogin() {
                 fontSize: '14px',
                 fontWeight: '600',
                 cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.7 : 1
+                opacity: loading ? 0.7 : 1,
+                boxShadow: '0 4px 14px rgba(99,102,241,0.35)',
+                transition: 'all 0.2s ease'
               }}
             >
               {loading ? 'Signing in...' : 'Sign in'}
             </button>
           </form>
 
-          <p style={{ textAlign: 'center', fontSize: '13px', color: '#64748b', marginTop: '24px' }}>
+          <p style={{
+            textAlign: 'center',
+            fontSize: '13px',
+            color: 'var(--text-muted)',
+            marginTop: '24px'
+          }}>
             Forgot password? Contact your DevHub admin.
           </p>
 
-          <p style={{ textAlign: 'center', fontSize: '13px', color: '#64748b', marginTop: '12px' }}>
-            <Link to="/login" style={{ color: '#6366f1', fontWeight: '600', textDecoration: 'none' }}>
+          <p style={{
+            textAlign: 'center',
+            fontSize: '13px',
+            color: 'var(--text-muted)',
+            marginTop: '12px'
+          }}>
+            <Link to="/login" style={{
+              color: 'var(--primary)',
+              fontWeight: '600',
+              textDecoration: 'none'
+            }}>
               ← Admin login
             </Link>
           </p>

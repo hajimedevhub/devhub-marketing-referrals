@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
+import { useIsMobile } from '../hooks/useMediaQuery';
 import API from '../api';
 
 function Dashboard() {
+  const isMobile = useIsMobile();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -36,7 +38,12 @@ function Dashboard() {
     <Layout>
       <h2 style={styles.heading}>Dashboard Overview</h2>
       
-      <div style={styles.grid}>
+      <div style={{
+  display: 'grid',
+  gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(200px, 1fr))',
+  gap: '12px',
+  marginBottom: '32px'
+}}>
         {cards.map((card) => (
           <div key={card.label} style={styles.card}>
             <p style={styles.cardLabel}>{card.label}</p>
@@ -65,7 +72,7 @@ function Dashboard() {
         )}
       </div>
 
-      <div style={styles.actions}>
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '12px' }}>
         <Link to="/admin/partners" style={styles.actionBtn}>
           Manage Partners
         </Link>
