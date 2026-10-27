@@ -146,12 +146,15 @@ function Layout({ children }) {
         )}
       </nav>
 
-      <main style={{
-        maxWidth: '1200px',
-        margin: '0 auto',
-        padding: isMobile ? '20px 16px' : '32px 24px'
-      }}>
-        {children}
+      <main
+        key={location.pathname}
+        className="fade-in"
+        style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          padding: isMobile ? '20px 16px' : '32px 24px'
+        }}>
+          {children}
       </main>
     </div>
   );

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import PartnerLayout from '../../components/PartnerLayout';
 import { PartnerAPI } from '../../api';
+import { useIsMobile } from '../../hooks/useMediaQuery';
 
 const statusColors = {
   new: { bg: '#fef3c7', color: '#92400e', label: 'New' },
@@ -11,6 +12,7 @@ const statusColors = {
 };
 
 function PartnerClientDetail() {
+  const isMobile = useIsMobile();
   const { id } = useParams();
   const navigate = useNavigate();
   const [client, setClient] = useState(null);
@@ -70,7 +72,12 @@ function PartnerClientDetail() {
         ← Back to clients
       </button>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px', alignItems: 'start' }}>
+      <div style={{
+  display: 'grid',
+  gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr',
+  gap: '24px',
+  alignItems: 'start'
+}}>
         {/* Main card */}
         <div style={{
           background: 'white',
@@ -80,6 +87,7 @@ function PartnerClientDetail() {
         }}>
           {/* Header banner */}
           <div style={{
+            padding: isMobile ? '24px 20px' : '32px',
             background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
             padding: '32px',
             color: 'white'
@@ -152,7 +160,7 @@ function PartnerClientDetail() {
             )}
 
             {/* Action buttons */}
-            <div style={{ display: 'flex', gap: '12px', marginTop: '32px' }}>
+            <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '12px', marginTop: '32px' }}>
               <a
                 href={`mailto:${client.email}`}
                 style={{
