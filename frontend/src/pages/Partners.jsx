@@ -112,28 +112,56 @@ function Partners() {
 
   return (
     <Layout>
-      <div style={styles.header}>
-        <h2 style={styles.heading}>Marketing Partners</h2>
-        <button onClick={() => setShowForm(!showForm)} style={styles.addBtn}>
-          {showForm ? 'Cancel' : '+ Add Partner'}
+      {/* ============ PAGE HEADER (OUTSIDE LOOP — ONE ONLY) ============ */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '24px',
+        gap: '12px',
+        flexWrap: 'wrap'
+      }}>
+        <div>
+          <h2 style={{
+            fontSize: isMobile ? '22px' : '28px',
+            fontWeight: '700',
+            color: 'var(--text-primary)',
+            margin: 0
+          }}>
+            Marketing Partners
+          </h2>
+          <p style={{
+            color: 'var(--text-muted)',
+            fontSize: '14px',
+            marginTop: '4px'
+          }}>
+            {partners.length} {partners.length === 1 ? 'partner' : 'partners'} total
+          </p>
+        </div>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="btn btn-primary"
+        >
+          {showForm ? '✕ Cancel' : '+ Add Partner'}
         </button>
       </div>
 
+      {/* ============ ADD PARTNER FORM ============ */}
       {showForm && (
         <div style={styles.formCard}>
           <h3 style={styles.formTitle}>New Partner</h3>
           <form onSubmit={handleSubmit}>
             <div style={{
-  display: 'grid',
-  gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
-  gap: '12px',
-  marginBottom: '16px'
-}}>
+              display: 'grid',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
+              gap: '12px',
+              marginBottom: '16px'
+            }}>
               <input
                 placeholder="Full Name *"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className='input'
+                className="input"
                 required
               />
               <input
@@ -141,20 +169,20 @@ function Partners() {
                 placeholder="Email *"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className='input'
+                className="input"
                 required
               />
               <input
                 placeholder="Company"
                 value={form.company}
                 onChange={(e) => setForm({ ...form, company: e.target.value })}
-                className='input'
+                className="input"
               />
               <input
                 placeholder="Phone"
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                className='input'
+                className="input"
               />
             </div>
             {error && <p style={styles.error}>{error}</p>}
@@ -165,6 +193,7 @@ function Partners() {
         </div>
       )}
 
+      {/* ============ PARTNER LIST ============ */}
       {loading ? (
         <p>Loading...</p>
       ) : partners.length === 0 ? (
@@ -175,127 +204,118 @@ function Partners() {
         <div style={styles.partnerList}>
           {partners.map((partner) => (
             <div key={partner._id} style={styles.partnerCard}>
-              <div style={{
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  marginBottom: '24px',
-  gap: '12px',
-  flexWrap: 'wrap'
-}}>
-  <div>
-    <h2 style={{
-      fontSize: isMobile ? '22px' : '28px',
-      fontWeight: '700',
-      color: 'var(--text-primary)',
-      margin: 0
-    }}>
-      Marketing Partners
-    </h2>
-    <p style={{
-      color: 'var(--text-muted)',
-      fontSize: '14px',
-      marginTop: '4px'
-    }}>
-      {partners.length} {partners.length === 1 ? 'partner' : 'partners'} total
-    </p>
-  </div>
-  <button
-    onClick={() => setShowForm(!showForm)}
-    className="btn btn-primary"
-  >
-    {showForm ? '✕ Cancel' : '+ Add Partner'}
-  </button>
-</div>
 
-              <div style={{
-  display: 'flex',
-  gap: '8px',
-  alignItems: 'stretch',
-  background: 'var(--bg)',
-  padding: '10px',
-  borderRadius: 'var(--radius-sm)',
-  marginBottom: '16px',
-  flexDirection: isMobile ? 'column' : 'row'
-}}>
-  <code style={{
-    flex: 1,
-    fontSize: '12px',
-    color: 'var(--text-secondary)',
-    padding: '8px',
-    background: 'white',
-    borderRadius: '6px',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-    border: '1px solid var(--border)'
-  }}>
-    {window.location.origin}/referral/{partner.referralCode}
-  </code>
-  <button
-    onClick={() => copyLink(partner.referralCode)}
-    className="btn btn-primary btn-sm"
-    style={{ whiteSpace: 'nowrap' }}
-  >
-    {copied === partner.referralCode ? '✓ Copied' : 'Copy'}
-  </button>
-</div>
+              {/* === PARTNER CARD HEADER — shows THIS partner's name === */}
+              <div style={styles.partnerHeader}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <h3 style={styles.partnerName}>{partner.name}</h3>
+                  <p style={styles.partnerMeta}>{partner.email}</p>
+                  {partner.company && (
+                    <p style={styles.partnerMeta}>{partner.company}</p>
+                  )}
+                </div>
+                <span
+                  style={{
+                    ...styles.statusBadge,
+                    background: partner.status === 'active' ? '#d1fae5' : '#fee2e2',
+                    color: partner.status === 'active' ? '#065f46' : '#991b1b'
+                  }}
+                >
+                  {partner.status}
+                </span>
+              </div>
 
+              {/* === REFERRAL LINK === */}
               <div style={{
-  ...styles.partnerFooter,
-  flexDirection: isMobile ? 'column' : 'row',
-  alignItems: isMobile ? 'stretch' : 'center',
-  gap: '12px'
-}}>
-  <div style={{
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    justifyContent: isMobile ? 'center' : 'flex-start'
-  }}>
-    <div style={{
-      width: '32px',
-      height: '32px',
-      borderRadius: '8px',
-      background: 'var(--primary-light)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontSize: '14px'
-    }}>👥</div>
-    <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--primary)' }}>
-      {partner.clientCount || 0} {partner.clientCount === 1 ? 'client' : 'clients'}
-    </span>
-  </div>
+                display: 'flex',
+                gap: '8px',
+                alignItems: 'stretch',
+                background: 'var(--bg)',
+                padding: '10px',
+                borderRadius: 'var(--radius-sm)',
+                marginBottom: '16px',
+                flexDirection: isMobile ? 'column' : 'row'
+              }}>
+                <code style={{
+                  flex: 1,
+                  fontSize: '12px',
+                  color: 'var(--text-secondary)',
+                  padding: '8px',
+                  background: 'white',
+                  borderRadius: '6px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  border: '1px solid var(--border)'
+                }}>
+                  {window.location.origin}/referral/{partner.referralCode}
+                </code>
+                <button
+                  onClick={() => copyLink(partner.referralCode)}
+                  className="btn btn-primary btn-sm"
+                  style={{ whiteSpace: 'nowrap' }}
+                >
+                  {copied === partner.referralCode ? '✓ Copied' : 'Copy'}
+                </button>
+              </div>
 
-  <div style={{
-    display: 'grid',
-    gridTemplateColumns: isMobile ? '1fr 1fr' : 'auto auto auto auto',
-    gap: '8px'
-  }}>
-    <Link to={`/admin/partners/${partner._id}`} className="btn btn-secondary btn-sm">
-      View
-    </Link>
-    <button onClick={() => resetPassword(partner)} className="btn btn-secondary btn-sm">
-      🔑 Reset
-    </button>
-    <button onClick={() => toggleStatus(partner)} className="btn btn-secondary btn-sm">
-      {partner.status === 'active' ? 'Disable' : 'Enable'}
-    </button>
-    <button
-      onClick={() => handleDelete(partner)}
-      disabled={deletingId === partner._id}
-      className="btn btn-danger btn-sm"
-    >
-      {deletingId === partner._id ? '...' : '🗑️'}
-    </button>
-  </div>
-</div>
+              {/* === CARD FOOTER — client count + action buttons === */}
+              <div style={{
+                ...styles.partnerFooter,
+                flexDirection: isMobile ? 'column' : 'row',
+                alignItems: isMobile ? 'stretch' : 'center',
+                gap: '12px'
+              }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  justifyContent: isMobile ? 'center' : 'flex-start'
+                }}>
+                  <div style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '8px',
+                    background: 'var(--primary-light)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '14px'
+                  }}>👥</div>
+                  <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--primary)' }}>
+                    {partner.clientCount || 0} {partner.clientCount === 1 ? 'client' : 'clients'}
+                  </span>
+                </div>
+
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: isMobile ? '1fr 1fr' : 'auto auto auto auto',
+                  gap: '8px'
+                }}>
+                  <Link to={`/admin/partners/${partner._id}`} className="btn btn-secondary btn-sm">
+                    View
+                  </Link>
+                  <button onClick={() => resetPassword(partner)} className="btn btn-secondary btn-sm">
+                    🔑 Reset
+                  </button>
+                  <button onClick={() => toggleStatus(partner)} className="btn btn-secondary btn-sm">
+                    {partner.status === 'active' ? 'Disable' : 'Enable'}
+                  </button>
+                  <button
+                    onClick={() => handleDelete(partner)}
+                    disabled={deletingId === partner._id}
+                    className="btn btn-danger btn-sm"
+                  >
+                    {deletingId === partner._id ? '...' : '🗑️'}
+                  </button>
+                </div>
+              </div>
             </div>
           ))}
         </div>
       )}
 
+      {/* ============ CREDENTIALS MODAL ============ */}
       {newCredentials && (
         <div style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
@@ -349,79 +369,44 @@ function Partners() {
 }
 
 const styles = {
-  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' },
-  heading: { fontSize: '24px', color: '#1e293b', margin: 0 },
-  addBtn: {
-    background: '#3b82f6', color: 'white', border: 'none',
-    padding: '10px 20px', borderRadius: '8px',
-    fontSize: '14px', fontWeight: '600', cursor: 'pointer'
-  },
   formCard: {
     background: 'white', padding: '24px', borderRadius: '10px',
     marginBottom: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
   },
-  formTitle: { margin: '0 0 16px', fontSize: '18px', color: '#1e293b' },
-  formGrid: {
-    display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '12px', marginBottom: '12px'
-  },
-  input: {
-    padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px',
-    fontSize: '14px', boxSizing: 'border-box'
-  },
-  submitBtn: {
-    background: '#10b981', color: 'white', border: 'none',
-    padding: '12px 24px', borderRadius: '6px',
-    fontSize: '14px', fontWeight: '600', cursor: 'pointer'
-  },
-  error: { color: '#ef4444', fontSize: '13px' },
+  formTitle: { margin: '0 0 16px', fontSize: '18px', color: 'var(--text-primary)' },
+  error: { color: 'var(--danger)', fontSize: '13px' },
   emptyCard: { background: 'white', padding: '40px', borderRadius: '10px', textAlign: 'center' },
-  empty: { color: '#94a3b8' },
+  empty: { color: 'var(--text-muted)' },
   partnerList: { display: 'flex', flexDirection: 'column', gap: '16px' },
   partnerCard: {
-    background: 'white', padding: '20px', borderRadius: '10px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+    background: 'white', padding: '20px', borderRadius: 'var(--radius-lg)',
+    boxShadow: 'var(--shadow-sm)', border: '1px solid var(--border)'
   },
-  partnerHeader: { display: 'flex', justifyContent: 'space-between', marginBottom: '16px' },
-  partnerName: { margin: '0 0 4px', fontSize: '18px', color: '#1e293b' },
-  partnerMeta: { margin: '2px 0', fontSize: '13px', color: '#64748b' },
+  partnerHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: '16px',
+    gap: '12px'
+  },
+  partnerName: {
+    margin: '0 0 4px',
+    fontSize: '18px',
+    fontWeight: '700',
+    color: 'var(--text-primary)'
+  },
+  partnerMeta: { margin: '2px 0', fontSize: '13px', color: 'var(--text-muted)' },
   statusBadge: {
     padding: '4px 12px', borderRadius: '12px',
-    fontSize: '12px', fontWeight: '600', height: 'fit-content'
+    fontSize: '12px', fontWeight: '600', height: 'fit-content',
+    textTransform: 'capitalize'
   },
-  linkBox: {
-    display: 'flex', gap: '8px', alignItems: 'center',
-    background: '#f8fafc', padding: '10px',
-    borderRadius: '6px', marginBottom: '16px'
-  },
-  linkText: { flex: 1, fontSize: '12px', color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis' },
-  copyBtn: {
-    background: '#3b82f6', color: 'white', border: 'none',
-    padding: '6px 14px', borderRadius: '6px',
-    fontSize: '12px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap'
-  },
-  partnerFooter: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' },
-  clientCount: { fontSize: '14px', fontWeight: '600', color: '#1e40af' },
-  btnGroup: { display: 'flex', gap: '8px', flexWrap: 'wrap' },
-  viewBtn: {
-    background: 'white', color: '#3b82f6', border: '1px solid #3b82f6',
-    padding: '6px 14px', borderRadius: '6px', fontSize: '12px',
-    fontWeight: '600', textDecoration: 'none'
-  },
-  resetBtn: {
-    background: 'white', color: '#f59e0b', border: '1px solid #f59e0b',
-    padding: '6px 14px', borderRadius: '6px', fontSize: '12px',
-    fontWeight: '600', cursor: 'pointer'
-  },
-  toggleBtn: {
-    background: 'white', color: '#64748b', border: '1px solid #cbd5e1',
-    padding: '6px 14px', borderRadius: '6px', fontSize: '12px',
-    fontWeight: '600', cursor: 'pointer'
-  },
-  deleteBtn: {
-    background: '#ef4444', color: 'white', border: 'none',
-    padding: '6px 14px', borderRadius: '6px', fontSize: '12px',
-    fontWeight: '600', cursor: 'pointer'
+  partnerFooter: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: '12px'
   }
 };
 
